@@ -57,7 +57,26 @@ class EditorScreen:
     TOOL_PEN = 0
     TOOL_FILL = 1
     TOOL_LINE = 2
-    TOOL_CELL_SIZE = 14
+    TOOL_RECT_LINE = 3
+    TOOL_RECT_FILL = 4
+    TOOL_CIR_LINE = 5
+    TOOL_CIR_FILL = 6
+    TOOL_SPUIT = 7
+    TOOL_MOVE = 8
+    # TOOL_SELECT = 9
+    TOOLS = [
+        TOOL_PEN,
+        TOOL_FILL,
+        TOOL_LINE,
+        TOOL_RECT_LINE,
+        TOOL_RECT_FILL,
+        TOOL_CIR_LINE,
+        TOOL_CIR_FILL,
+        TOOL_SPUIT,
+        TOOL_MOVE,
+        # TOOL_SELECT
+    ]
+    TOOL_CELL_SIZE = 15
     TOOL_X = 16
     TOOL_Y = 16
 
@@ -248,13 +267,6 @@ class EditorScreen:
             self.previous_point = None
             return
 
-        if self.preview_mode:
-            if pyxel.btnp(pyxel.KEY_ESCAPE):
-                self.preview_mode = False
-
-            self.previous_point = None
-            return
-
         # ---------------------------------------------
         # パターンサイズ変更
         # ---------------------------------------------
@@ -321,7 +333,7 @@ class EditorScreen:
         ):
             self.selected_tool = (
                 self.selected_tool - 1
-            ) % 2
+            ) % len(self.TOOLS)
 
         if (
             pyxel.btn(pyxel.KEY_ALT)
@@ -329,7 +341,7 @@ class EditorScreen:
         ):
             self.selected_tool = (
                 self.selected_tool + 1
-            ) % 2
+            ) % len(self.TOOLS)
 
         # ---------------------------------------------
         # パレットクリック
@@ -805,7 +817,7 @@ class EditorScreen:
         ツールを表示する。
         """
 
-        for tool in range(3):
+        for tool in range(len(self.TOOLS)):
             x = (
                 self.TOOL_X
                 + tool * self.TOOL_CELL_SIZE
@@ -914,7 +926,7 @@ class EditorScreen:
         self.draw_text_shadow(
             8,
             19,
-            "P / ESC: BACK",
+            "P : BACK",
             7,
         )
 
@@ -960,7 +972,7 @@ class EditorScreen:
         """
 
         tool_width = (
-            self.TOOL_CELL_SIZE * 3
+            self.TOOL_CELL_SIZE * len(self.TOOLS)
         )
 
         if not (
@@ -975,7 +987,7 @@ class EditorScreen:
             mouse_x - self.TOOL_X
         ) // self.TOOL_CELL_SIZE
 
-        if 0 <= tool < 3:
+        if 0 <= tool < len(self.TOOLS):
             return tool
 
         return None

@@ -35,6 +35,8 @@ class TitleScreen:
     def draw(self):
         pyxel.cls(0)
 
+        app = self.app
+
         
         for i in range((pyxel.width // PTN_SIZE) + 1):
             for j in range((pyxel.height // PTN_SIZE) + 1):
@@ -66,19 +68,20 @@ class TitleScreen:
         # 文字
         # --------------------
         msg = "PATTERN MAKER"
-        pyxel.text(
-            (pyxel.width // 2) - (len(msg)*pyxel.FONT_WIDTH // 2)+1,
-            20+1,
-            msg,
-            7
+        pyxel.rect(
+            (pyxel.width // 2) - (app.font.text_width(msg)//2)-2,
+            20,
+            app.font.text_width(msg)+4,
+            11,
+            5
         )
-        pyxel.text(
-            (pyxel.width // 2) - (len(msg)*pyxel.FONT_WIDTH // 2),
+        draw_text_shadow(
+            (pyxel.width // 2) - (app.font.text_width(msg)//2),
             20,
             msg,
-            0
+            7,
+            custom_font=True
         )
-
 
         # --------------------
         # Pyxel LOGO
@@ -95,7 +98,8 @@ class TitleScreen:
             16,
             pyxel.height-16-16-pyxel.FONT_HEIGHT-1,
             "Made with",
-            7
+            7,
+            # custom_font=True
         )
         pyxel.blt(
             16,

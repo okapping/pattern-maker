@@ -21,6 +21,8 @@ class PatternMaker:
         )
         pyxel.mouse(True)
         pyxel.load("assets/asset.pyxres")
+        # self.font = pyxel.Font("assets/x8y12pxDenkiChip.ttf")
+        self.font = pyxel.Font("assets/x10y12pxDonguriDuel.ttf")
 
         self.screens = {
             self.SCREEN_TITLE: TitleScreen(self),
