@@ -271,6 +271,9 @@ class EditorScreen:
             self.previous_point = None
             return
 
+        # プレビューモード時は何も受け付けない。
+        if self.preview_mode:
+            return
         # ---------------------------------------------
         # パターンサイズ変更
         # ---------------------------------------------
@@ -499,22 +502,94 @@ class EditorScreen:
             # 四角（線）ツール
             # ----------
             elif self.selected_tool == self.TOOL_RECT_LINE:
-                ...
+                if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.starting_point = current_point
+                if self.starting_point is not None:
+                    if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
+                        self.paint_rect_line(
+                            self.starting_point,
+                            current_point,
+                            self.selected_color,
+                        )
+                        self.starting_point = None
+                        self.clear_preview_canvas()
+                    if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
+                        self.clear_preview_canvas()
+                        self.paint_rect_line(
+                            self.starting_point,
+                            current_point,
+                            self.selected_color,
+                            preview=True
+                        )
             # ----------
             # 四角（塗りつぶし）ツール
             # ----------
             elif self.selected_tool == self.TOOL_RECT_FILL:
-                ...
+                if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.starting_point = current_point
+                if self.starting_point is not None:
+                    if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
+                        self.paint_rect_fill(
+                            self.starting_point,
+                            current_point,
+                            self.selected_color,
+                        )
+                        self.starting_point = None
+                        self.clear_preview_canvas()
+                    if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
+                        self.clear_preview_canvas()
+                        self.paint_rect_fill(
+                            self.starting_point,
+                            current_point,
+                            self.selected_color,
+                            preview=True
+                        )
             # ----------
             # 円（線）ツール
             # ----------
             elif self.selected_tool == self.TOOL_CIR_LINE:
-                ...
+                if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.starting_point = current_point
+                if self.starting_point is not None:
+                    if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
+                        self.paint_cir_line(
+                            self.starting_point,
+                            current_point,
+                            self.selected_color,
+                        )
+                        self.starting_point = None
+                        self.clear_preview_canvas()
+                    if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
+                        self.clear_preview_canvas()
+                        self.paint_cir_line(
+                            self.starting_point,
+                            current_point,
+                            self.selected_color,
+                            preview=True
+                        )
             # ----------
             # 円（塗りつぶし）ツール
             # ----------
             elif self.selected_tool == self.TOOL_CIR_FILL:
-                ...
+                if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.starting_point = current_point
+                if self.starting_point is not None:
+                    if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
+                        self.paint_cir_fill(
+                            self.starting_point,
+                            current_point,
+                            self.selected_color,
+                        )
+                        self.starting_point = None
+                        self.clear_preview_canvas()
+                    if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
+                        self.clear_preview_canvas()
+                        self.paint_cir_fill(
+                            self.starting_point,
+                            current_point,
+                            self.selected_color,
+                            preview=True
+                        )
             # ----------
             # スポイトツール
             # ----------
@@ -527,7 +602,38 @@ class EditorScreen:
             # 移動ツール
             # ----------
             elif self.selected_tool == self.TOOL_MOVE:
-                ...
+                if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.starting_point = current_point
+                if self.starting_point is not None:
+                    if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
+                        start_x, start_y = self.starting_point
+                        current_x, current_y = current_point
+
+                        # 座標の差分
+                        diff_x = current_x - start_x
+                        diff_y = current_y - start_y
+
+                        # 横方向の移動
+                        if diff_x > 0:
+                            for _ in range(diff_x):
+                                self.move_to_right()
+
+                        elif diff_x < 0:
+                            for _ in range(-diff_x):
+                                self.move_to_left()
+
+                        # 縦方向の移動
+                        if diff_y > 0:
+                            for _ in range(diff_y):
+                                self.move_to_down()
+
+                        elif diff_y < 0:
+                            for _ in range(-diff_y):
+                                self.move_to_up()
+
+                        self.starting_point = current_point
+                    if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
+                        self.starting_point = None
 
 
         # ---------------------------------------------
@@ -560,7 +666,9 @@ class EditorScreen:
                 self.previous_point = current_point
 
         else:
+            # 以下枠外にあるとき・・・（変更するかも）
             self.previous_point = None
+            self.clear_preview_canvas()
 
         # ---------------------------------------------
         # 全消去
@@ -603,7 +711,7 @@ class EditorScreen:
 
     def paint_line(self, start, end, color, preview=False):
         """
-        直線を引く
+        直線を引く。
         前回位置と現在位置の間を補間して描画する。
         マウスを速く動かしたときに、途中のドットが
         抜けるのを防ぐのにも有効
@@ -624,12 +732,428 @@ class EditorScreen:
             x = round(
                 x1 + dx * i / distance
             )
-
             y = round(
                 y1 + dy * i / distance
             )
-
             self.paint_point(x, y, color, preview)
+
+    def paint_rect_line(self, start, end, color, preview=False):
+        """
+        四角形の枠線を描く。
+        start と end は、対角線上の2点。
+        """
+        x1, y1 = start
+        x2, y2 = end
+
+        # 四隅の座標
+        top_left = (x1, y1)
+        top_right = (x2, y1)
+        bottom_left = (x1, y2)
+        bottom_right = (x2, y2)
+
+        # 上辺
+        self.paint_line(
+            top_left,
+            top_right,
+            color,
+            preview
+        )
+
+        # 右辺
+        self.paint_line(
+            top_right,
+            bottom_right,
+            color,
+            preview
+        )
+
+        # 下辺
+        self.paint_line(
+            bottom_right,
+            bottom_left,
+            color,
+            preview
+        )
+
+        # 左辺
+        self.paint_line(
+            bottom_left,
+            top_left,
+            color,
+            preview
+        )
+
+    def paint_rect_fill(self, start, end, color, preview=False):
+        """
+        四角形を塗りつぶす。
+        start と end は、対角線上の2点。
+        """
+        x1, y1 = start
+        x2, y2 = end
+
+        # 左右・上下の順番を正規化
+        left = min(x1, x2)
+        right = max(x1, x2)
+        top = min(y1, y2)
+        bottom = max(y1, y2)
+
+        # 各行を横方向に描画
+        for y in range(top, bottom + 1):
+            self.paint_line(
+                (left, y),
+                (right, y),
+                color,
+                preview
+            )
+
+    def paint_cir_line(self, start, end, color, preview=False):
+        """
+        左上のカーブを基準に、上下左右対称な楕円を描く。
+        """
+        x1, y1 = start
+        x2, y2 = end
+
+        left = min(x1, x2)
+        right = max(x1, x2)
+        top = min(y1, y2)
+        bottom = max(y1, y2)
+
+        center_x = (left + right) / 2
+        center_y = (top + bottom) / 2
+
+        radius_x = (right - left) / 2
+        radius_y = (bottom - top) / 2
+
+        if radius_x == 0 and radius_y == 0:
+            self.paint_point(
+                round(center_x),
+                round(center_y),
+                color,
+                preview
+            )
+            return
+
+        pixels = set()
+
+        # 左上の1/4だけを作る
+        steps = max(90, round(max(radius_x, radius_y) * 8))
+
+        previous = None
+
+        for i in range(steps + 1):
+            # 180度から270度が左上側
+            angle = 180 + i * 90 / steps
+
+            x = round(
+                center_x + radius_x * pyxel.cos(angle)
+            )
+            y = round(
+                center_y + radius_y * pyxel.sin(angle)
+            )
+
+            current = (x, y)
+
+            if previous is None:
+                pixels.add(current)
+            else:
+                self.add_line_pixels(
+                    pixels,
+                    previous,
+                    current
+                )
+
+            previous = current
+
+        # 左上のカーブに対して、上下左右対称に配置
+        mirrored_pixels = set()
+
+        for x, y in pixels:
+            mirrored_pixels.add((x, y))
+            mirrored_pixels.add((
+                round(2 * center_x - x),
+                y
+            ))
+            mirrored_pixels.add((
+                x,
+                round(2 * center_y - y)
+            ))
+            mirrored_pixels.add((
+                round(2 * center_x - x),
+                round(2 * center_y - y)
+            ))
+
+        # L字を対称に除去
+        mirrored_pixels = self.remove_l_shapes_symmetric(
+            mirrored_pixels,
+            center_x,
+            center_y
+        )
+
+        for x, y in mirrored_pixels:
+            self.paint_point(x, y, color, preview)
+
+
+    def add_line_pixels(self, pixels, start, end):
+        """
+        2点間のドットを pixels に追加する。
+        """
+        x1, y1 = start
+        x2, y2 = end
+
+        dx = x2 - x1
+        dy = y2 - y1
+
+        distance = max(abs(dx), abs(dy))
+
+        if distance == 0:
+            pixels.add(start)
+            return
+
+        for i in range(distance + 1):
+            x = round(x1 + dx * i / distance)
+            y = round(y1 + dy * i / distance)
+            pixels.add((x, y))
+
+    def remove_l_shapes_symmetric(self, pixels, center_x, center_y):
+        """
+        2×2のL字を整理する。
+
+        円の中心に近いドットから削除するが、
+        削除によって円周が途切れる場合は削除しない。
+        """
+        pixels = set(pixels)
+
+        def symmetric_pixels(x, y):
+            return {
+                (x, y),
+                (round(2 * center_x - x), y),
+                (x, round(2 * center_y - y)),
+                (
+                    round(2 * center_x - x),
+                    round(2 * center_y - y)
+                ),
+            }
+
+        def is_connected(target):
+            """
+            ドット群が8方向でつながっているか確認する。
+            """
+            if not target:
+                return False
+
+            start = next(iter(target))
+            visited = {start}
+            stack = [start]
+
+            directions = (
+                (-1, -1), (0, -1), (1, -1),
+                (-1,  0),          (1,  0),
+                (-1,  1), (0,  1), (1,  1),
+            )
+
+            while stack:
+                x, y = stack.pop()
+
+                for dx, dy in directions:
+                    next_pixel = (x + dx, y + dy)
+
+                    if (
+                        next_pixel in target
+                        and next_pixel not in visited
+                    ):
+                        visited.add(next_pixel)
+                        stack.append(next_pixel)
+
+            return len(visited) == len(target)
+
+        while True:
+            candidates = []
+
+            for x, y in pixels:
+                block = {
+                    (x, y),
+                    (x + 1, y),
+                    (x, y + 1),
+                    (x + 1, y + 1),
+                }
+
+                present = block & pixels
+
+                if len(present) != 3:
+                    continue
+
+                # L字を構成しているドットを候補にする
+                for px, py in present:
+                    distance = (
+                        (px - center_x) ** 2
+                        + (py - center_y) ** 2
+                    )
+
+                    candidates.append((
+                        distance,
+                        px,
+                        py
+                    ))
+
+            if not candidates:
+                break
+
+            # 中心に近いドットから調べる
+            candidates.sort(
+                key=lambda item: item[0]
+            )
+
+            removed = False
+
+            for _, remove_x, remove_y in candidates:
+                remove_pixels = symmetric_pixels(
+                    remove_x,
+                    remove_y
+                )
+
+                new_pixels = pixels - remove_pixels
+
+                # 削除後も円周がつながる場合だけ削除する
+                if is_connected(new_pixels):
+                    pixels = new_pixels
+                    removed = True
+                    break
+
+            # どの候補も削除できなければ終了
+            if not removed:
+                break
+
+        return pixels
+
+    def paint_cir_fill(self, start, end, color, preview=False):
+        """
+        左上のカーブを基準に、上下左右対称な楕円を塗りつぶす。
+        """
+        x1, y1 = start
+        x2, y2 = end
+
+        left = min(x1, x2)
+        right = max(x1, x2)
+        top = min(y1, y2)
+        bottom = max(y1, y2)
+
+        center_x = (left + right) / 2
+        center_y = (top + bottom) / 2
+
+        radius_x = (right - left) / 2
+        radius_y = (bottom - top) / 2
+
+        if radius_x == 0 and radius_y == 0:
+            self.paint_point(
+                round(center_x),
+                round(center_y),
+                color,
+                preview
+            )
+            return
+
+        pixels = set()
+
+        # 左上の1/4だけを作る
+        steps = max(
+            90,
+            round(max(radius_x, radius_y) * 8)
+        )
+
+        previous = None
+
+        for i in range(steps + 1):
+            # 180度から270度が左上側
+            angle = 180 + i * 90 / steps
+
+            x = round(
+                center_x + radius_x * pyxel.cos(angle)
+            )
+            y = round(
+                center_y + radius_y * pyxel.sin(angle)
+            )
+
+            current = (x, y)
+
+            if previous is None:
+                pixels.add(current)
+            else:
+                self.add_line_pixels(
+                    pixels,
+                    previous,
+                    current
+                )
+
+            previous = current
+
+        # 左上のカーブを上下左右に反転
+        mirrored_pixels = set()
+
+        for x, y in pixels:
+            mirrored_pixels.add((x, y))
+
+            mirrored_pixels.add((
+                round(2 * center_x - x),
+                y
+            ))
+
+            mirrored_pixels.add((
+                x,
+                round(2 * center_y - y)
+            ))
+
+            mirrored_pixels.add((
+                round(2 * center_x - x),
+                round(2 * center_y - y)
+            ))
+
+        # L字を対称に除去
+        mirrored_pixels = self.remove_l_shapes_symmetric(
+            mirrored_pixels,
+            center_x,
+            center_y
+        )
+
+        # 行ごとに左右端を調べて、横線で塗りつぶす
+        rows = {}
+
+        for x, y in mirrored_pixels:
+            if y not in rows:
+                rows[y] = []
+
+            rows[y].append(x)
+
+        for y, xs in rows.items():
+            line_left = min(xs)
+            line_right = max(xs)
+
+            self.paint_line(
+                (line_left, y),
+                (line_right, y),
+                color,
+                preview
+            )
+
+
+    def move_to_up(self):
+        if self.canvas:
+            self.canvas = self.canvas[1:] + self.canvas[:1]
+
+    def move_to_down(self):
+        if self.canvas:
+            self.canvas = self.canvas[-1:] + self.canvas[:-1]
+
+    def move_to_right(self):
+        for y in range(len(self.canvas)):
+            if self.canvas[y]:
+                self.canvas[y] = self.canvas[y][-1:] + self.canvas[y][:-1]
+
+    def move_to_left(self):
+        for y in range(len(self.canvas)):
+            if self.canvas[y]:
+                self.canvas[y] = self.canvas[y][1:] + self.canvas[y][:1]
+
+
 
     # =====================================================
     # 描画

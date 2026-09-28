@@ -11,15 +11,20 @@ PTN_KAGOME = (48, 32)
 PTN_KAMADO = (0, 48)
 PTN_KOUSHI = (16, 48)
 PTN_KUSAKI = (32, 48)
+PTN_KUSAKI = (48, 48)
 
 PATTERNS = [
-    PTN_KATAKUSA,
-    PTN_UROKO,
-    PTN_ICHIMATSU,
-    PTN_KAGOME,
-    PTN_KAMADO,
-    PTN_KOUSHI,
-    PTN_KUSAKI
+    (0, 32),
+    (16, 32),
+    (32, 32),
+    (48, 32),
+    (0, 48),
+    (32, 64),
+    (16, 48),
+    (32, 48),
+    (48, 48),
+    (0, 64),
+    (16, 64),
 ]
 
 class TitleScreen:
@@ -44,8 +49,8 @@ class TitleScreen:
                     i * PTN_SIZE,
                     j * PTN_SIZE,
                     0,
-                    PATTERNS[(pyxel.frame_count // 90) % 7][0],
-                    PATTERNS[(pyxel.frame_count // 90) % 7][1],
+                    PATTERNS[(pyxel.frame_count // 90) % len(PATTERNS)][0],
+                    PATTERNS[(pyxel.frame_count // 90) % len(PATTERNS)][1],
                     PTN_SIZE,
                     PTN_SIZE
                 )
