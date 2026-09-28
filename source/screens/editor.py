@@ -103,10 +103,14 @@ class EditorScreen:
         self.frame_size = 128
 
         # 選択中の色
-        self.selected_color = 8
+        self.selected_color = 7
 
         # プレビューモード
         self.preview_mode = False
+        # ツール一覧の表示
+        self.show_tools = True
+        # パレット一覧の表示
+        self.show_pallet = False
 
         # 前回描画した論理座標
         self.previous_point = None
@@ -369,9 +373,15 @@ class EditorScreen:
             )
 
             if tool is not None:
-                self.selected_tool = tool
-                self.previous_point = None
-                return
+                if self.show_tools:
+                    if self.selected_tool == tool:
+                        self.show_tools = False
+                    self.selected_tool = tool
+                    self.previous_point = None
+                    return
+                else:
+                    if self.selected_tool == tool:
+                        self.show_tools = True
 
         # ---------------------------------------------
         # 左クリックで描画
@@ -478,20 +488,13 @@ class EditorScreen:
                         self.starting_point = None
                         self.clear_preview_canvas()
                     if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
+                        self.clear_preview_canvas()
                         self.paint_line(
                             self.starting_point,
                             current_point,
                             self.selected_color,
                             preview=True
                         )
-
-        # if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
-            # current_point = self.screen_to_canvas(
-            #     pyxel.mouse_x,
-            #     pyxel.mouse_y,
-            # )
-
-            # if current_point is not None:
 
 
         # ---------------------------------------------
@@ -572,10 +575,6 @@ class EditorScreen:
         マウスを速く動かしたときに、途中のドットが
         抜けるのを防ぐのにも有効
         """
-        # プレビューの場合はキャンバスを初期化
-        if preview:
-            self.clear_preview_canvas()
-
         x1, y1 = start
         x2, y2 = end
 
@@ -679,6 +678,24 @@ class EditorScreen:
 
                 self.draw_tile(left, top)
 
+        # 中央のガイド線を表示
+        # 縦
+        pyxel.line(
+            editor_x + (self.frame_size // 2) - 1,
+            editor_y - 1,
+            editor_x + (self.frame_size // 2) - 1,
+            editor_y + self.frame_size - 1,
+            1
+        )
+        # 横
+        pyxel.line(
+            editor_x - 1,
+            editor_y + (self.frame_size // 2) - 1,
+            editor_x + self.frame_size - 1,
+            editor_y + (self.frame_size // 2) - 1,
+            1
+        )
+
         # 中央の入力枠を強調
         pyxel.rectb(
             editor_x - 1,
@@ -697,27 +714,6 @@ class EditorScreen:
         editor_y = self.editor_y()
 
         self.draw_tile(editor_x, editor_y, preview=True)
-        # 周囲を5×5で描画
-        # for tile_y in range(-2, 3):
-        #     for tile_x in range(-2, 3):
-        #         left = editor_x + (
-        #             tile_x * self.frame_size
-        #         )
-
-        #         top = self.editor_y() + (
-        #             tile_y * self.frame_size
-        #         )
-
-        #         self.draw_tile(left, top)
-
-        # 中央の入力枠を強調
-        # pyxel.rectb(
-        #     editor_x - 1,
-        #     self.editor_y() - 1,
-        #     self.frame_size + 2,
-        #     self.frame_size + 2,
-        #     7,
-        # )
 
     def draw_tile(self, tile_x, tile_y, preview=False):
         """
@@ -772,7 +768,7 @@ class EditorScreen:
             tile_y,
             self.frame_size,
             self.frame_size,
-            13,
+            1,
         )
 
     def draw_palette(self):
@@ -817,27 +813,49 @@ class EditorScreen:
         ツールを表示する。
         """
 
-        for tool in range(len(self.TOOLS)):
-            x = (
-                self.TOOL_X
-                + tool * self.TOOL_CELL_SIZE
+        if self.show_tools:
+            for tool in range(len(self.TOOLS)):
+                x = (
+                    self.TOOL_X
+                    + tool * self.TOOL_CELL_SIZE
+                )
+                pyxel.pal(5, 0)
+                pyxel.blt(
+                    x+1,
+                    self.TOOL_Y+1,
+                    0,
+                    tool * 16,
+                    0,
+                    self.TOOL_CELL_SIZE-2,
+                    self.TOOL_CELL_SIZE-2,
+                    10
+                )
+                pyxel.pal()
+                if tool == self.selected_tool:
+                    pyxel.pal(5, 7)
+                pyxel.blt(
+                    x,
+                    self.TOOL_Y,
+                    0,
+                    tool * 16,
+                    0,
+                    self.TOOL_CELL_SIZE-2,
+                    self.TOOL_CELL_SIZE-2,
+                    10
+                )
+                pyxel.pal()
+
+            self.draw_text_shadow(
+                self.TOOL_X,
+                self.TOOL_Y-7,
+                "TOOLS",
+                7,
             )
-            pyxel.pal(5, 0)
+        else:
+            tool = self.TOOLS[self.selected_tool]
+            pyxel.pal(5, 7)
             pyxel.blt(
-                x+1,
-                self.TOOL_Y+1,
-                0,
-                tool * 16,
-                0,
-                self.TOOL_CELL_SIZE-2,
-                self.TOOL_CELL_SIZE-2,
-                10
-            )
-            pyxel.pal()
-            if tool == self.selected_tool:
-                pyxel.pal(5, 7)
-            pyxel.blt(
-                x,
+                self.TOOL_X,
                 self.TOOL_Y,
                 0,
                 tool * 16,
@@ -847,13 +865,6 @@ class EditorScreen:
                 10
             )
             pyxel.pal()
-
-        self.draw_text_shadow(
-            self.TOOL_X,
-            self.TOOL_Y-7,
-            "TOOLS",
-            7,
-        )
 
     def draw_footer(self):
         self.draw_text_shadow(
@@ -971,26 +982,41 @@ class EditorScreen:
         ツール外ならNoneを返す。
         """
 
-        tool_width = (
-            self.TOOL_CELL_SIZE * len(self.TOOLS)
-        )
+        if self.show_tools:
+            tool_width = (
+                self.TOOL_CELL_SIZE * len(self.TOOLS)
+            )
 
-        if not (
-            self.TOOL_X <= mouse_x
-            < self.TOOL_X + tool_width
-            and self.TOOL_Y <= mouse_y
-            < self.TOOL_Y + self.TOOL_CELL_SIZE
-        ):
+            if not (
+                self.TOOL_X <= mouse_x
+                < self.TOOL_X + tool_width
+                and self.TOOL_Y <= mouse_y
+                < self.TOOL_Y + self.TOOL_CELL_SIZE
+            ):
+                return None
+
+            tool = (
+                mouse_x - self.TOOL_X
+            ) // self.TOOL_CELL_SIZE
+
+            if 0 <= tool < len(self.TOOLS):
+                return tool
+
             return None
+        else:
+            tool_width = self.TOOL_CELL_SIZE
 
-        tool = (
-            mouse_x - self.TOOL_X
-        ) // self.TOOL_CELL_SIZE
-
-        if 0 <= tool < len(self.TOOLS):
+            if not (
+                self.TOOL_X <= mouse_x
+                < self.TOOL_X + tool_width
+                and self.TOOL_Y <= mouse_y
+                < self.TOOL_Y + self.TOOL_CELL_SIZE
+            ):
+                return None
+            
+            tool = self.selected_tool
             return tool
 
-        return None
 
     # =====================================================
     # PNG出力
@@ -1009,13 +1035,13 @@ class EditorScreen:
         for y in range(self.pattern_size):
             for x in range(self.pattern_size):
                 color_index = self.canvas[y][x]
-                rgb = PYXEL_PALETTE[color_index]
+                # rgb = PYXEL_PALETTE[color_index]
 
-                red = (rgb >> 16) & 0xFF
-                green = (rgb >> 8) & 0xFF
-                blue = rgb & 0xFF
+                # red = (rgb >> 16) & 0xFF
+                # green = (rgb >> 8) & 0xFF
+                # blue = rgb & 0xFF
 
-                p_image.set(x, y, [str(color_index)])
+                p_image.set(x, y, [f"{color_index:X}"])
 
         # filename = (
         #     f"pattern_{self.pattern_size}x"
@@ -1026,6 +1052,7 @@ class EditorScreen:
         filename = f"pattern_{timestamp}.png"
         self.download_image(p_image, filename)
         print(f"PNG saved: {filename}")
+        print(f"canvas: {self.canvas}")
 
     # =====================================================
     # テキスト出力
