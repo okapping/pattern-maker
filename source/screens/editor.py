@@ -495,6 +495,39 @@ class EditorScreen:
                             self.selected_color,
                             preview=True
                         )
+            # ----------
+            # 四角（線）ツール
+            # ----------
+            elif self.selected_tool == self.TOOL_RECT_LINE:
+                ...
+            # ----------
+            # 四角（塗りつぶし）ツール
+            # ----------
+            elif self.selected_tool == self.TOOL_RECT_FILL:
+                ...
+            # ----------
+            # 円（線）ツール
+            # ----------
+            elif self.selected_tool == self.TOOL_CIR_LINE:
+                ...
+            # ----------
+            # 円（塗りつぶし）ツール
+            # ----------
+            elif self.selected_tool == self.TOOL_CIR_FILL:
+                ...
+            # ----------
+            # スポイトツール
+            # ----------
+            elif self.selected_tool == self.TOOL_SPUIT:
+                if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
+                    x, y = current_point[0], current_point[1]
+                    color = self.canvas[y][x]
+                    self.selected_color = color
+            # ----------
+            # 移動ツール
+            # ----------
+            elif self.selected_tool == self.TOOL_MOVE:
+                ...
 
 
         # ---------------------------------------------
