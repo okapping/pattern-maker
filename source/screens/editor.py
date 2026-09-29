@@ -4,6 +4,7 @@ import pyxel
 # from PIL import Image
 # from js import window, Blob, URL, document
 from js import Blob, URL, Uint8Array, document
+from copy import deepcopy
 
 import utils
 # =========================================================
@@ -92,10 +93,17 @@ class EditorScreen:
 
         pyxel.mouse(True)
         pyxel.load("assets/asset.pyxres")
+        # --------------------
+        # CANVAS関連
+        # --------------------
         # キャンバス
         self.canvas = []
         # 一時的に表示する仮想的なキャンバス
         self.preview_canvas = []
+        # 戻る用のキャンバス
+        self.undo_canvases = []
+        # 進む用のキャンバス
+        self.redo_canvases = []
         # 現在のパターンサイズ
         self.pattern_size = 16
 
@@ -205,6 +213,41 @@ class EditorScreen:
         self.frame_size = new_size
         self.previous_point = None
 
+    def register_undo(self):
+        """
+        キャンバスをundoへ登録する
+        """
+        
+        self.undo_canvases.append(deepcopy(self.canvas))
+
+    def register_redo(self):
+        """
+        キャンバスをundoへ登録する
+        """
+
+        self.redo_canvases.append(deepcopy(self.canvas))
+
+    def undo_canvas(self):
+        """
+        キャンバスをひとつ前の状態に戻す
+        """
+        if self.undo_canvases:
+            self.register_redo()
+            self.canvas = self.undo_canvases.pop()
+
+    def redo_canvas(self):
+        """
+        キャンバスをひとつ先の状態に進める
+        """
+        if self.redo_canvases:
+            self.register_undo()
+            self.canvas = self.redo_canvases.pop()
+
+    def reset_undo(self):
+        self.undo_canvases = []
+    def reset_redo(self):
+        self.redo_canvases = []
+
     # =====================================================
     # 座標変換
     # =====================================================
@@ -262,6 +305,7 @@ class EditorScreen:
     # =====================================================
 
     def update(self):
+        before_canvas = deepcopy(self.canvas)
         # ---------------------------------------------
         # プレビューモード
         # ---------------------------------------------
@@ -274,6 +318,27 @@ class EditorScreen:
         # プレビューモード時は何も受け付けない。
         if self.preview_mode:
             return
+        # ---------------------------------------------
+        # 戻るボタン関連の処理
+        # ---------------------------------------------
+        if (
+            pyxel.btnp(pyxel.KEY_B)
+            # pyxel.btn(pyxel.KEY_GUI)
+            # and not pyxel.btn(pyxel.KEY_SHIFT)
+            # and pyxel.btnp(pyxel.KEY_Z)
+        ):
+            self.undo_canvas()
+            return
+
+        if (
+            pyxel.btnp(pyxel.KEY_N)
+            # pyxel.btn(pyxel.KEY_GUI)
+            # and pyxel.btn(pyxel.KEY_SHIFT)
+            # and pyxel.btnp(pyxel.KEY_Z)
+        ):
+            self.redo_canvas()
+            return
+
         # ---------------------------------------------
         # パターンサイズ変更
         # ---------------------------------------------
@@ -400,6 +465,9 @@ class EditorScreen:
             # ペンツール
             # ----------
             if self.selected_tool == self.TOOL_PEN:
+                if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.register_undo()
+                    self.reset_redo()
                 if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
                     if self.previous_point is None:
                         self.paint_point(
@@ -422,6 +490,9 @@ class EditorScreen:
             # 塗りつぶしツール
             # ----------
             elif self.selected_tool == self.TOOL_FILL:
+                if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.register_undo()
+                    self.reset_redo()
                 if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
                     start_x, start_y = current_point[0], current_point[1]
 
@@ -480,6 +551,8 @@ class EditorScreen:
             # ----------
             elif self.selected_tool == self.TOOL_LINE:
                 if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.register_undo()
+                    self.reset_redo()
                     self.starting_point = current_point
                 if self.starting_point is not None:
                     if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
@@ -503,6 +576,8 @@ class EditorScreen:
             # ----------
             elif self.selected_tool == self.TOOL_RECT_LINE:
                 if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.register_undo()
+                    self.reset_redo()
                     self.starting_point = current_point
                 if self.starting_point is not None:
                     if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
@@ -526,6 +601,8 @@ class EditorScreen:
             # ----------
             elif self.selected_tool == self.TOOL_RECT_FILL:
                 if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.register_undo()
+                    self.reset_redo()
                     self.starting_point = current_point
                 if self.starting_point is not None:
                     if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
@@ -549,6 +626,8 @@ class EditorScreen:
             # ----------
             elif self.selected_tool == self.TOOL_CIR_LINE:
                 if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.register_undo()
+                    self.reset_redo()
                     self.starting_point = current_point
                 if self.starting_point is not None:
                     if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
@@ -572,6 +651,8 @@ class EditorScreen:
             # ----------
             elif self.selected_tool == self.TOOL_CIR_FILL:
                 if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.register_undo()
+                    self.reset_redo()
                     self.starting_point = current_point
                 if self.starting_point is not None:
                     if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
@@ -603,6 +684,8 @@ class EditorScreen:
             # ----------
             elif self.selected_tool == self.TOOL_MOVE:
                 if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+                    self.register_undo()
+                    self.reset_redo()
                     self.starting_point = current_point
                 if self.starting_point is not None:
                     if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
@@ -685,6 +768,9 @@ class EditorScreen:
         if pyxel.btnp(pyxel.KEY_S):
             self.export_png()
             self.export_text()
+
+        # if before_canvas != self.canvas:
+        #     self.undo_canvases.append(before_canvas)
 
     # =====================================================
     # 描画データ変更
@@ -1171,7 +1257,8 @@ class EditorScreen:
             self.draw_tools()
             # self.draw_header()
             self.draw_footer()
-        # pyxel.text(0, 0, f"{self.preview_canvas}", 7)
+        pyxel.text(0, 0, f"undo: {len(self.undo_canvases)}", 7)
+        pyxel.text(100, 0, f"redo: {len(self.redo_canvases)}", 7)
 
     def draw_text_shadow(self, x, y, text, color=7):
         """

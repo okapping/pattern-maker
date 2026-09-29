@@ -27,11 +27,11 @@ class ListScreen:
         self.app = app
         self.canvases = None
 
-    def save_game(self, score):
-        window.localStorage.setItem("score", str(score))
+    def save_data(self, score):
+        window.localStorage.setItem("canvases", str(score))
 
-    def load_game(self):
-        value = window.localStorage.getItem("score")
+    def load_data(self):
+        value = window.localStorage.getItem("canvases")
         return int(value) if value is not None else 0
 
     def update(self):
