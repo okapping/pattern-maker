@@ -39,6 +39,13 @@ class EditorScreen:
     SCREEN_WIDTH = 256
     SCREEN_HEIGHT = 256
 
+    BACK_BUTTON = [
+        4,
+        4,
+        32,
+        12
+    ]
+
     # パターンそのもののサイズ
     PATTERN_SIZE_LIST = [8, 16, 32, 48]
 
@@ -52,9 +59,12 @@ class EditorScreen:
     # パレット
     PALETTE_CELL_SIZE = 14
     PALETTE_X = 16
-    PALETTE_Y = 211
+    PALETTE_Y = 236
 
     # ツール
+    TOOL_CELL_SIZE = 15
+    TOOL_X = 4
+    TOOL_Y = 20
     TOOL_PEN = 0
     TOOL_FILL = 1
     TOOL_LINE = 2
@@ -77,9 +87,20 @@ class EditorScreen:
         TOOL_MOVE,
         # TOOL_SELECT
     ]
-    TOOL_CELL_SIZE = 15
-    TOOL_X = 16
-    TOOL_Y = 16
+
+    MENU_UNDO = 0
+    MENU_REDO = 1
+    MENU_SAVE = 2
+    MENU_EXPORT = 3
+    MENU_CELL_SIZE = 15
+    MENU_X = 192
+    MENU_Y = 20
+    MENUS = [
+        MENU_UNDO,
+        MENU_REDO,
+        MENU_SAVE,
+        MENU_EXPORT
+    ]
 
     def __init__(self, app):
         self.app = app
@@ -307,6 +328,40 @@ class EditorScreen:
     def update(self):
         before_canvas = deepcopy(self.canvas)
         # ---------------------------------------------
+        # 一覧画面へ戻る
+        # ---------------------------------------------
+        if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
+            x, y, w, h = self.BACK_BUTTON
+            if (
+                x < pyxel.mouse_x <= x + w
+                and y < pyxel.mouse_y <= y + h
+            ):
+                self.app.change_screen(self.app.SCREEN_LIST)
+        # ---------------------------------------------
+        # メニュークリック
+        # ---------------------------------------------
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            menu = self.get_select_menu(
+                pyxel.mouse_x,
+                pyxel.mouse_y,
+            )
+
+            if menu is not None:
+                if menu == self.MENU_UNDO:
+                    self.undo_canvas()
+                if menu == self.MENU_REDO:
+                    self.redo_canvas()
+                # if self.show_tools:
+                #     if self.selected_tool == tool:
+                #         self.show_tools = False
+                #     self.selected_tool = tool
+                #     self.previous_point = None
+                #     return
+                # else:
+                #     if self.selected_tool == tool:
+                #         self.show_tools = True
+
+        # ---------------------------------------------
         # プレビューモード
         # ---------------------------------------------
 
@@ -319,10 +374,10 @@ class EditorScreen:
         if self.preview_mode:
             return
         # ---------------------------------------------
-        # 戻るボタン関連の処理
+        # Undo, Redo 関連の処理
         # ---------------------------------------------
         if (
-            pyxel.btnp(pyxel.KEY_B)
+            pyxel.btnp(pyxel.KEY_B, hold=15, repeat=1)
             # pyxel.btn(pyxel.KEY_GUI)
             # and not pyxel.btn(pyxel.KEY_SHIFT)
             # and pyxel.btnp(pyxel.KEY_Z)
@@ -331,7 +386,7 @@ class EditorScreen:
             return
 
         if (
-            pyxel.btnp(pyxel.KEY_N)
+            pyxel.btnp(pyxel.KEY_N, hold=15, repeat=1)
             # pyxel.btn(pyxel.KEY_GUI)
             # and pyxel.btn(pyxel.KEY_SHIFT)
             # and pyxel.btnp(pyxel.KEY_Z)
@@ -343,17 +398,17 @@ class EditorScreen:
         # パターンサイズ変更
         # ---------------------------------------------
 
-        if pyxel.btnp(pyxel.KEY_1):
-            self.change_pattern_size(8)
+        # if pyxel.btnp(pyxel.KEY_1):
+        #     self.change_pattern_size(8)
 
-        if pyxel.btnp(pyxel.KEY_2):
-            self.change_pattern_size(16)
+        # if pyxel.btnp(pyxel.KEY_2):
+        #     self.change_pattern_size(16)
 
-        if pyxel.btnp(pyxel.KEY_3):
-            self.change_pattern_size(32)
+        # if pyxel.btnp(pyxel.KEY_3):
+        #     self.change_pattern_size(32)
 
-        if pyxel.btnp(pyxel.KEY_4):
-            self.change_pattern_size(48)
+        # if pyxel.btnp(pyxel.KEY_4):
+        #     self.change_pattern_size(48)
 
         # ---------------------------------------------
         # 入力枠サイズ変更
@@ -1255,10 +1310,11 @@ class EditorScreen:
             self.draw_preview_pattern()
             self.draw_palette()
             self.draw_tools()
-            # self.draw_header()
-            self.draw_footer()
-        pyxel.text(0, 0, f"undo: {len(self.undo_canvases)}", 7)
-        pyxel.text(100, 0, f"redo: {len(self.redo_canvases)}", 7)
+            self.draw_menus()
+            self.draw_header()
+            # self.draw_footer()
+        # pyxel.text(0, 0, f"undo: {len(self.undo_canvases)}", 7)
+        # pyxel.text(100, 0, f"redo: {len(self.redo_canvases)}", 7)
 
     def draw_text_shadow(self, x, y, text, color=7):
         """
@@ -1280,27 +1336,19 @@ class EditorScreen:
         )
 
     def draw_header(self):
+        pyxel.rect(
+            self.BACK_BUTTON[0],
+            self.BACK_BUTTON[1],
+            self.BACK_BUTTON[2],
+            self.BACK_BUTTON[3],
+            1
+        )
         self.draw_text_shadow(
             8,
             7,
-            "PYXEL PATTERN EDITOR",
+            "< BACK",
             7,
         )
-
-        self.draw_text_shadow(
-            8,
-            18,
-            f"PATTERN: {self.pattern_size} x {self.pattern_size}",
-            10,
-        )
-
-        self.draw_text_shadow(
-            145,
-            18,
-            f"FRAME: {self.frame_size}",
-            7,
-        )
-
     def draw_pattern(self):
         """
         中央の入力枠と、その周囲の繰り返しパターンを描画する。
@@ -1445,12 +1493,12 @@ class EditorScreen:
                 )
 
         # パレットサイズ表示
-        self.draw_text_shadow(
-            8,
-            202,
-            "PALETTE: 16 COLORS",
-            7,
-        )
+        # self.draw_text_shadow(
+        #     8,
+        #     202,
+        #     "PALETTE: 16 COLORS",
+        #     7,
+        # )
 
     def draw_tools(self):
         """
@@ -1489,12 +1537,12 @@ class EditorScreen:
                 )
                 pyxel.pal()
 
-            self.draw_text_shadow(
-                self.TOOL_X,
-                self.TOOL_Y-7,
-                "TOOLS",
-                7,
-            )
+            # self.draw_text_shadow(
+            #     self.TOOL_X,
+            #     self.TOOL_Y-7,
+            #     "TOOLS",
+            #     7,
+            # )
         else:
             tool = self.TOOLS[self.selected_tool]
             pyxel.pal(5, 7)
@@ -1506,6 +1554,43 @@ class EditorScreen:
                 0,
                 self.TOOL_CELL_SIZE-2,
                 self.TOOL_CELL_SIZE-2,
+                10
+            )
+            pyxel.pal()
+
+    def draw_menus(self):
+        for menu in range(len(self.MENUS)):
+            x = (
+                self.MENU_X
+                + menu * self.MENU_CELL_SIZE
+            )
+            y = self.MENU_Y
+            pyxel.pal(5, 0)
+            pyxel.blt(
+                x+1,
+                y+1,
+                0,
+                menu * 16,
+                16,
+                self.MENU_CELL_SIZE-2,
+                self.MENU_CELL_SIZE-2,
+                10
+            )
+            pyxel.pal()
+            if (
+                pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)
+                and x <= pyxel.mouse_x < x+self.MENU_CELL_SIZE
+                and y <= pyxel.mouse_y < y+self.MENU_CELL_SIZE
+            ):
+                pyxel.pal(5, 7)
+            pyxel.blt(
+                x,
+                y,
+                0,
+                menu * 16,
+                16,
+                self.MENU_CELL_SIZE-2,
+                self.MENU_CELL_SIZE-2,
                 10
             )
             pyxel.pal()
@@ -1661,6 +1746,36 @@ class EditorScreen:
             tool = self.selected_tool
             return tool
 
+    # =====================================================
+    # メニュー
+    # =====================================================
+
+    def get_select_menu(self, mouse_x, mouse_y):
+        """
+        クリックされたメニューを返す。
+        ツール外ならNoneを返す。
+        """
+
+        menu_width = (
+            self.MENU_CELL_SIZE * len(self.MENUS)
+        )
+
+        if not (
+            self.MENU_X <= mouse_x
+            < self.MENU_X + menu_width
+            and self.MENU_Y <= mouse_y
+            < self.MENU_Y + self.MENU_CELL_SIZE
+        ):
+            return None
+
+        menu = (
+            mouse_x - self.MENU_X
+        ) // self.MENU_CELL_SIZE
+
+        if 0 <= menu < len(self.MENUS):
+            return menu
+
+        return None
 
     # =====================================================
     # PNG出力
