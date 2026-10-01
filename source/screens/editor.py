@@ -102,9 +102,10 @@ class EditorScreen:
         MENU_EXPORT
     ]
 
-    def __init__(self, app):
+    def __init__(self, app, list, id, canvas):
         self.app = app
-        # self.id = id
+        self.list = list
+        self.id = id
         # pyxel.init(
         #     self.SCREEN_WIDTH,
         #     self.SCREEN_HEIGHT,
@@ -148,11 +149,14 @@ class EditorScreen:
 
         # 選択中のツール
         self.selected_tool = self.TOOL_PEN
-        # self.selected_tool = self.TOOL_FILL
 
+        # ステータス状態
+        self.status = None
+        self.status_time = None
         # 初期キャンバス
         # 0番色、つまり黒で埋める
-        self.create_canvas()
+        # self.create_canvas()
+        self.canvas = canvas
         self.create_preview_canvas()
 
         # pyxel.run(self.update, self.draw)
@@ -330,7 +334,7 @@ class EditorScreen:
         # ---------------------------------------------
         # 一覧画面へ戻る
         # ---------------------------------------------
-        if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
             x, y, w, h = self.BACK_BUTTON
             if (
                 x < pyxel.mouse_x <= x + w
@@ -349,8 +353,12 @@ class EditorScreen:
             if menu is not None:
                 if menu == self.MENU_UNDO:
                     self.undo_canvas()
-                if menu == self.MENU_REDO:
+                elif menu == self.MENU_REDO:
                     self.redo_canvas()
+                elif menu == self.MENU_SAVE:
+                    self.save_canvas()
+                elif menu == self.MENU_EXPORT:
+                    self.export_png()
                 # if self.show_tools:
                 #     if self.selected_tool == tool:
                 #         self.show_tools = False
@@ -822,7 +830,7 @@ class EditorScreen:
 
         if pyxel.btnp(pyxel.KEY_S):
             self.export_png()
-            self.export_text()
+            # self.export_text()
 
         # if before_canvas != self.canvas:
         #     self.undo_canvases.append(before_canvas)
@@ -1312,6 +1320,7 @@ class EditorScreen:
             self.draw_tools()
             self.draw_menus()
             self.draw_header()
+            self.draw_status()
             # self.draw_footer()
         # pyxel.text(0, 0, f"undo: {len(self.undo_canvases)}", 7)
         # pyxel.text(100, 0, f"redo: {len(self.redo_canvases)}", 7)
@@ -1669,6 +1678,22 @@ class EditorScreen:
             "P : BACK",
             7,
         )
+    
+    def draw_status(self):
+        """
+        保存状態のステータスを返す
+        """
+        if (
+            self.status is not None 
+            and pyxel.frame_count < self.status_time+60
+            ):
+            pyxel.text(
+                pyxel.mouse_x+10,
+                pyxel.mouse_y+10,
+                self.status,
+                pyxel.rndi(1, 15),
+                self.app.font
+            )
 
     # =====================================================
     # パレット
@@ -1776,6 +1801,19 @@ class EditorScreen:
             return menu
 
         return None
+    # =====================================================
+    # キャンバスの保存
+    # =====================================================
+    def save_canvas(self):
+        status = self.list.save_canvas(
+            self.id,
+            self.canvas
+        )
+        if status is not None:
+            self.status = status
+            self.status_time = pyxel.frame_count
+
+
 
     # =====================================================
     # PNG出力

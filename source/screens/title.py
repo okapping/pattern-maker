@@ -33,7 +33,7 @@ class TitleScreen:
 
     def update(self):
         app = self.app
-        if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
             app.screens[app.SCREEN_LIST] = ListScreen(app)
             app.change_screen(app.SCREEN_LIST)
     
@@ -72,7 +72,7 @@ class TitleScreen:
         # --------------------
         # 文字
         # --------------------
-        msg = "PATTERN MAKER"
+        msg = "Pattern Maker"
         pyxel.rect(
             (pyxel.width // 2) - (app.font.text_width(msg)//2)-2,
             20,
