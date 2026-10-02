@@ -151,8 +151,8 @@ class EditorScreen:
         self.selected_tool = self.TOOL_PEN
 
         # ステータス状態
-        self.status = None
-        self.status_time = None
+        # self.status = None
+        self.status_time = 0
         # 初期キャンバス
         # 0番色、つまり黒で埋める
         # self.create_canvas()
@@ -385,19 +385,20 @@ class EditorScreen:
         # Undo, Redo 関連の処理
         # ---------------------------------------------
         if (
-            pyxel.btnp(pyxel.KEY_B, hold=15, repeat=1)
-            # pyxel.btn(pyxel.KEY_GUI)
-            # and not pyxel.btn(pyxel.KEY_SHIFT)
-            # and pyxel.btnp(pyxel.KEY_Z)
+            # pyxel.btnp(pyxel.KEY_B, hold=15, repeat=1)
+            pyxel.btn(pyxel.KEY_CTRL)
+            and not pyxel.btn(pyxel.KEY_SHIFT)
+            and pyxel.btnp(pyxel.KEY_Z)
         ):
             self.undo_canvas()
             return
 
         if (
-            pyxel.btnp(pyxel.KEY_N, hold=15, repeat=1)
+            # pyxel.btnp(pyxel.KEY_N, hold=15, repeat=1)
             # pyxel.btn(pyxel.KEY_GUI)
-            # and pyxel.btn(pyxel.KEY_SHIFT)
-            # and pyxel.btnp(pyxel.KEY_Z)
+            pyxel.btn(pyxel.KEY_CTRL)
+            and pyxel.btn(pyxel.KEY_SHIFT)
+            and pyxel.btnp(pyxel.KEY_Z)
         ):
             self.redo_canvas()
             return
@@ -434,9 +435,9 @@ class EditorScreen:
         if pyxel.btnp(pyxel.KEY_R):
             self.change_frame_size(160)
 
-        if pyxel.btnp(pyxel.KEY_UP, hold=15, repeat=1):
+        if pyxel.btn(pyxel.KEY_UP):
             self.change_frame_size(self.frame_size + 4)
-        if pyxel.btnp(pyxel.KEY_DOWN, hold=15, repeat=1):
+        if pyxel.btn(pyxel.KEY_DOWN):
             self.change_frame_size(self.frame_size - 4)
         # ---------------------------------------------
         # 色変更
@@ -531,23 +532,27 @@ class EditorScreen:
                 if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
                     self.register_undo()
                     self.reset_redo()
-                if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
-                    if self.previous_point is None:
-                        self.paint_point(
-                            current_point[0],
-                            current_point[1],
-                            self.selected_color,
-                        )
-                    else:
-                        self.paint_line(
-                            self.previous_point,
-                            current_point,
-                            self.selected_color,
-                        )
+                    self.starting_point = current_point
+                if self.starting_point is not None:
+                    if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
+                        if self.previous_point is None:
+                            self.paint_point(
+                                current_point[0],
+                                current_point[1],
+                                self.selected_color,
+                            )
+                        else:
+                            self.paint_line(
+                                self.previous_point,
+                                current_point,
+                                self.selected_color,
+                            )
 
-                    self.previous_point = current_point
-                else:
-                    self.previous_point = None
+                        self.previous_point = current_point
+                    else:
+                        self.previous_point = None
+                    if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
+                        self.starting_point = None
                 
             # ----------
             # 塗りつぶしツール
@@ -618,14 +623,6 @@ class EditorScreen:
                     self.reset_redo()
                     self.starting_point = current_point
                 if self.starting_point is not None:
-                    if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
-                        self.paint_line(
-                            self.starting_point,
-                            current_point,
-                            self.selected_color,
-                        )
-                        self.starting_point = None
-                        self.clear_preview_canvas()
                     if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
                         self.clear_preview_canvas()
                         self.paint_line(
@@ -634,6 +631,14 @@ class EditorScreen:
                             self.selected_color,
                             preview=True
                         )
+                    if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
+                        self.paint_line(
+                            self.starting_point,
+                            current_point,
+                            self.selected_color,
+                        )
+                        self.starting_point = None
+                        self.clear_preview_canvas()
             # ----------
             # 四角（線）ツール
             # ----------
@@ -668,14 +673,6 @@ class EditorScreen:
                     self.reset_redo()
                     self.starting_point = current_point
                 if self.starting_point is not None:
-                    if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
-                        self.paint_rect_fill(
-                            self.starting_point,
-                            current_point,
-                            self.selected_color,
-                        )
-                        self.starting_point = None
-                        self.clear_preview_canvas()
                     if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
                         self.clear_preview_canvas()
                         self.paint_rect_fill(
@@ -684,6 +681,14 @@ class EditorScreen:
                             self.selected_color,
                             preview=True
                         )
+                    if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
+                        self.paint_rect_fill(
+                            self.starting_point,
+                            current_point,
+                            self.selected_color,
+                        )
+                        self.starting_point = None
+                        self.clear_preview_canvas()
             # ----------
             # 円（線）ツール
             # ----------
@@ -693,14 +698,6 @@ class EditorScreen:
                     self.reset_redo()
                     self.starting_point = current_point
                 if self.starting_point is not None:
-                    if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
-                        self.paint_cir_line(
-                            self.starting_point,
-                            current_point,
-                            self.selected_color,
-                        )
-                        self.starting_point = None
-                        self.clear_preview_canvas()
                     if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
                         self.clear_preview_canvas()
                         self.paint_cir_line(
@@ -709,6 +706,14 @@ class EditorScreen:
                             self.selected_color,
                             preview=True
                         )
+                    if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
+                        self.paint_cir_line(
+                            self.starting_point,
+                            current_point,
+                            self.selected_color,
+                        )
+                        self.starting_point = None
+                        self.clear_preview_canvas()
             # ----------
             # 円（塗りつぶし）ツール
             # ----------
@@ -718,14 +723,6 @@ class EditorScreen:
                     self.reset_redo()
                     self.starting_point = current_point
                 if self.starting_point is not None:
-                    if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
-                        self.paint_cir_fill(
-                            self.starting_point,
-                            current_point,
-                            self.selected_color,
-                        )
-                        self.starting_point = None
-                        self.clear_preview_canvas()
                     if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
                         self.clear_preview_canvas()
                         self.paint_cir_fill(
@@ -734,6 +731,14 @@ class EditorScreen:
                             self.selected_color,
                             preview=True
                         )
+                    if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
+                        self.paint_cir_fill(
+                            self.starting_point,
+                            current_point,
+                            self.selected_color,
+                        )
+                        self.starting_point = None
+                        self.clear_preview_canvas()
             # ----------
             # スポイトツール
             # ----------
@@ -781,36 +786,6 @@ class EditorScreen:
                     if pyxel.btnr(pyxel.MOUSE_BUTTON_LEFT):
                         self.starting_point = None
 
-
-        # ---------------------------------------------
-        # 右クリックまたはXキーで黒に戻す
-        # ---------------------------------------------
-
-        elif (
-            pyxel.btn(pyxel.MOUSE_BUTTON_RIGHT)
-            or pyxel.btn(pyxel.KEY_X)
-        ):
-            current_point = self.screen_to_canvas(
-                pyxel.mouse_x,
-                pyxel.mouse_y,
-            )
-
-            if current_point is not None:
-                if self.previous_point is None:
-                    self.paint_point(
-                        current_point[0],
-                        current_point[1],
-                        0,
-                    )
-                else:
-                    self.paint_line(
-                        self.previous_point,
-                        current_point,
-                        0,
-                    )
-
-                self.previous_point = current_point
-
         else:
             # 以下枠外にあるとき・・・（変更するかも）
             self.previous_point = None
@@ -832,9 +807,6 @@ class EditorScreen:
             self.export_png()
             # self.export_text()
 
-        # if before_canvas != self.canvas:
-        #     self.undo_canvases.append(before_canvas)
-
     # =====================================================
     # 描画データ変更
     # =====================================================
@@ -843,8 +815,6 @@ class EditorScreen:
         """
         指定した1ドットだけを変更する。
 
-        重要:
-        キャンバス端に描いても反対側には描画しない。
         """
 
         if not (
@@ -1683,14 +1653,15 @@ class EditorScreen:
         """
         保存状態のステータスを返す
         """
+        s = "SAVED"
         if (
-            self.status is not None 
+            self.status_time > 0
             and pyxel.frame_count < self.status_time+60
             ):
             pyxel.text(
-                pyxel.mouse_x+10,
+                pyxel.mouse_x-10,
                 pyxel.mouse_y+10,
-                self.status,
+                s,
                 pyxel.rndi(1, 15),
                 self.app.font
             )
@@ -1805,13 +1776,11 @@ class EditorScreen:
     # キャンバスの保存
     # =====================================================
     def save_canvas(self):
-        status = self.list.save_canvas(
+        self.list.save_canvas(
             self.id,
             self.canvas
         )
-        if status is not None:
-            self.status = status
-            self.status_time = pyxel.frame_count
+        self.status_time = pyxel.frame_count
 
 
 
