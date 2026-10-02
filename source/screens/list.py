@@ -206,7 +206,6 @@ class ListScreen:
 
     def draw(self):
         pyxel.cls(5)
-        pyxel.text(0, 0, f"canvases_cnt: {len(self.canvases)}",7)
         # ヘッダー
         self.draw_header()
         # 新規ボタン
@@ -215,7 +214,6 @@ class ListScreen:
         self.draw_frame()
         # キャンバス一覧
         self.draw_cavases()
-        # pyxel.pset(self.FRAME[0],self.FRAME[1],pyxel.rndi(1, 15))
         # pyxel.rectb(
         #     *self.FRAME,
         #     pyxel.rndi(1, 15)
@@ -224,12 +222,6 @@ class ListScreen:
         # スクロールボタン
         self.draw_scroll()
         
-        # columns = 4  # 4行
-        # for i, canvas in enumerate(self.canvases):
-        #     x = 100 + (i % columns) * 16
-        #     y = 100 + (i // columns) * 16
-        #     self.draw_canvas(x, y, canvas["canvas"])
-
     def draw_header(self):
         """
         ヘッダー
@@ -242,8 +234,7 @@ class ListScreen:
             7,
             custom_font=True
         )
-        # pyxel.text(
-        # )
+
     def draw_frame(self):
         """
         キャンバス一覧を表示する額縁を描く
@@ -253,36 +244,36 @@ class ListScreen:
         w, h, = 220, 200
         r = 10
         for i in range(4):
-            # draw_rrect(
-            #     (pyxel.width//2)-(w//2),
-            #     (pyxel.height//2)-(h//2),
-            #     w,
-            #     h,
-            #     r,
-            #     cols[i]
-            # )
-            # draw_rrectb(
-            #     (pyxel.width//2)-(w//2),
-            #     (pyxel.height//2)-(h//2),
-            #     w,
-            #     h,
-            #     r,
-            #     1
-            # )
-            pyxel.rect(
+            draw_rrect(
                 (pyxel.width//2)-(w//2),
                 (pyxel.height//2)-(h//2),
                 w,
                 h,
+                r,
                 cols[i]
             )
-            pyxel.rectb(
+            draw_rrectb(
                 (pyxel.width//2)-(w//2),
                 (pyxel.height//2)-(h//2),
                 w,
                 h,
+                r,
                 1
             )
+            # pyxel.rect(
+            #     (pyxel.width//2)-(w//2),
+            #     (pyxel.height//2)-(h//2),
+            #     w,
+            #     h,
+            #     cols[i]
+            # )
+            # pyxel.rectb(
+            #     (pyxel.width//2)-(w//2),
+            #     (pyxel.height//2)-(h//2),
+            #     w,
+            #     h,
+            #     1
+            # )
             w -= 6+i*2
             h -= 6+i*2
             r -= 3

@@ -1635,19 +1635,19 @@ class EditorScreen:
                         )
 
         # 操作説明を表示する場合
-        self.draw_text_shadow(
-            8,
-            8,
-            f"PREVIEW: {self.pattern_size} x {self.pattern_size}",
-            7,
-        )
+        # self.draw_text_shadow(
+        #     8,
+        #     8,
+        #     f"PREVIEW: {self.pattern_size} x {self.pattern_size}",
+        #     7,
+        # )
 
-        self.draw_text_shadow(
-            8,
-            19,
-            "P : BACK",
-            7,
-        )
+        # self.draw_text_shadow(
+        #     8,
+        #     19,
+        #     "P : BACK",
+        #     7,
+        # )
     
     def draw_status(self):
         """

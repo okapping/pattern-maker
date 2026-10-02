@@ -41,7 +41,6 @@ class TitleScreen:
         pyxel.cls(0)
 
         app = self.app
-
         
         for i in range((pyxel.width // PTN_SIZE) + 1):
             for j in range((pyxel.height // PTN_SIZE) + 1):
@@ -78,7 +77,7 @@ class TitleScreen:
             20,
             app.font.text_width(msg)+4,
             11,
-            5
+            1
         )
         draw_text_shadow(
             (pyxel.width // 2) - (app.font.text_width(msg)//2),
@@ -88,21 +87,37 @@ class TitleScreen:
             custom_font=True
         )
 
+        msg = "Click to START"
+        pyxel.rect(
+            (pyxel.width // 2) - (app.font.text_width(msg)//2)-2,
+            180,
+            app.font.text_width(msg)+4,
+            11,
+            1
+        )
+        draw_text_shadow(
+            (pyxel.width // 2) - (app.font.text_width(msg)//2),
+            180,
+            msg,
+            7,
+            custom_font=True
+        )
+
         # --------------------
         # Pyxel LOGO
         # --------------------
-        msg = "Made with"
+        s = "Powered by"
         pyxel.rect(
-            16,
-            pyxel.height-16-16-pyxel.FONT_HEIGHT-1,
-            len(msg)*pyxel.FONT_WIDTH,
-            pyxel.FONT_HEIGHT,
-            5
+            16-1,
+            pyxel.height-16-16-pyxel.FONT_HEIGHT-2,
+            len(s)*pyxel.FONT_WIDTH+2,
+            pyxel.FONT_HEIGHT+2,
+            1
         )
         draw_text_shadow(
             16,
             pyxel.height-16-16-pyxel.FONT_HEIGHT-1,
-            "Made with",
+            s,
             7,
             # custom_font=True
         )
@@ -116,4 +131,3 @@ class TitleScreen:
             16,
             0
         )
-        pyxel.text(0, 0, "TITLE", 7)
