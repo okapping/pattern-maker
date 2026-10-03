@@ -97,6 +97,19 @@ class ListScreen:
         
         return
 
+    def get_canvas(self, id):
+        """
+        idからキャンバスを取得する
+        取得できなかった場合はNoneを返す
+        """
+        for data in self.canvases:
+            if id != data["id"]:
+                continue
+            
+            return data["canvas"]
+
+        return None
+
     def update(self):
         app = self.app
 

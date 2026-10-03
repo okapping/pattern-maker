@@ -7,8 +7,9 @@ def draw_text_shadow(x, y, text, color=7, custom_font=False):
     """
     font = None
     if custom_font:
-        # font = pyxel.Font("assets/x10y12pxDonguriDuel.ttf")
+        # font = pyxel.Font("assets/x10y12pxDonguriDuel.otf")
         font = pyxel.Font("assets/YokohamaDotsJPN.otf")
+        # font = pyxel.Font("assets/generated-font.ttf")
         # font = pyxel.Font("assets/x16y32pxGridGazer.ttf")
         # font = pyxel.Font("assets/x12y16pxLineLinker.ttf")
     pyxel.text(

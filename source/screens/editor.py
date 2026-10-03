@@ -45,6 +45,12 @@ class EditorScreen:
         32,
         12
     ]
+    PREVIEW_BUTTON = [
+        256-36-4,
+        4,
+        36,
+        12
+    ]
 
     # パターンそのもののサイズ
     PATTERN_SIZE_LIST = [8, 16, 32, 48]
@@ -130,7 +136,7 @@ class EditorScreen:
         self.pattern_size = 16
 
         # 現在の入力枠サイズ
-        self.frame_size = 128
+        self.frame_size = 160
 
         # 選択中の色
         self.selected_color = 7
@@ -331,6 +337,17 @@ class EditorScreen:
 
     def update(self):
         before_canvas = deepcopy(self.canvas)
+        # プレビューモード時は何も受け付けない。
+        if self.preview_mode:
+            if (
+                pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)
+                or pyxel.btnp(pyxel.KEY_P)
+            ):
+                self.preview_mode = not self.preview_mode
+                self.previous_point = None
+
+            return
+
         # ---------------------------------------------
         # 一覧画面へ戻る
         # ---------------------------------------------
@@ -359,33 +376,30 @@ class EditorScreen:
                     self.save_canvas()
                 elif menu == self.MENU_EXPORT:
                     self.export_png()
-                # if self.show_tools:
-                #     if self.selected_tool == tool:
-                #         self.show_tools = False
-                #     self.selected_tool = tool
-                #     self.previous_point = None
-                #     return
-                # else:
-                #     if self.selected_tool == tool:
-                #         self.show_tools = True
 
         # ---------------------------------------------
         # プレビューモード
         # ---------------------------------------------
+
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            x, y, w, h = self.PREVIEW_BUTTON
+            if (
+                x < pyxel.mouse_x <= x + w
+                and y < pyxel.mouse_y <= y + h
+            ):
+                self.preview_mode = not self.preview_mode
+                self.previous_point = None
+                return
 
         if pyxel.btnp(pyxel.KEY_P):
             self.preview_mode = not self.preview_mode
             self.previous_point = None
             return
 
-        # プレビューモード時は何も受け付けない。
-        if self.preview_mode:
-            return
         # ---------------------------------------------
         # Undo, Redo 関連の処理
         # ---------------------------------------------
         if (
-            # pyxel.btnp(pyxel.KEY_B, hold=15, repeat=1)
             pyxel.btn(pyxel.KEY_CTRL)
             and not pyxel.btn(pyxel.KEY_SHIFT)
             and pyxel.btnp(pyxel.KEY_Z)
@@ -1323,9 +1337,22 @@ class EditorScreen:
             1
         )
         self.draw_text_shadow(
-            8,
-            7,
+            self.BACK_BUTTON[0]+4,
+            self.BACK_BUTTON[1]+3,
             "< BACK",
+            7,
+        )
+        pyxel.rect(
+            self.PREVIEW_BUTTON[0],
+            self.PREVIEW_BUTTON[1],
+            self.PREVIEW_BUTTON[2],
+            self.PREVIEW_BUTTON[3],
+            1
+        )
+        self.draw_text_shadow(
+            self.PREVIEW_BUTTON[0]+4,
+            self.PREVIEW_BUTTON[1]+3,
+            "PREVIEW",
             7,
         )
     def draw_pattern(self):
@@ -1556,7 +1583,12 @@ class EditorScreen:
                 10
             )
             pyxel.pal()
-            if (
+            if menu in [self.MENU_UNDO, self.MENU_REDO]:
+                if menu == self.MENU_UNDO and not self.undo_canvases:
+                    pyxel.pal(5, 1)
+                elif menu == self.MENU_REDO and not self.redo_canvases:
+                    pyxel.pal(5, 1)
+            elif (
                 pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)
                 and x <= pyxel.mouse_x < x+self.MENU_CELL_SIZE
                 and y <= pyxel.mouse_y < y+self.MENU_CELL_SIZE
@@ -1573,6 +1605,18 @@ class EditorScreen:
                 10
             )
             pyxel.pal()
+
+            if menu == self.MENU_SAVE:
+                old_canvas = self.list.get_canvas(self.id)
+                if (old_canvas and self.canvas != old_canvas) or not old_canvas:
+                    pyxel.circ(
+                        x+11,
+                        y,
+                        2,
+                        8 if pyxel.frame_count//8%2==0 else 14
+                    )
+
+
 
     def draw_footer(self):
         self.draw_text_shadow(
