@@ -1,17 +1,13 @@
 import pyxel
+import webbrowser
+
 from .list import ListScreen
 
 from utils import *
 
 PTN_SIZE = 16
-PTN_KATAKUSA = (0, 32)
-PTN_UROKO = (16, 32)
-PTN_ICHIMATSU = (32, 32)
-PTN_KAGOME = (48, 32)
-PTN_KAMADO = (0, 48)
-PTN_KOUSHI = (16, 48)
-PTN_KUSAKI = (32, 48)
-PTN_KUSAKI = (48, 48)
+# webbrowser.open(git_hub_link)
+git_hub_link = "https://github.com/okapping/pattern-maker"
 
 PATTERNS = [
     (0, 32),
@@ -19,12 +15,13 @@ PATTERNS = [
     (32, 32),
     (48, 32),
     (0, 48),
-    (32, 64),
     (16, 48),
     (32, 48),
     (48, 48),
     (0, 64),
     (16, 64),
+    (32, 64),
+    (48, 64),
 ]
 
 class TitleScreen:
@@ -33,6 +30,16 @@ class TitleScreen:
 
     def update(self):
         app = self.app
+        # git hubアイコンをクリック
+        if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
+            x = 88
+            y = pyxel.height-16-16
+            if (
+                x <= pyxel.mouse_x < x+16
+                and y <= pyxel.mouse_y < y+16
+            ):
+                webbrowser.open(git_hub_link)
+                return
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
             app.screens[app.SCREEN_LIST] = ListScreen(app)
             app.change_screen(app.SCREEN_LIST)
@@ -54,6 +61,92 @@ class TitleScreen:
                     PTN_SIZE
                 )
         # --------------------
+        # 文字
+        # --------------------
+        msg = "Pattern Maker"
+        # pyxel.rect(
+        #     (pyxel.width // 2) - (app.font.text_width(msg)//2)-2,
+        #     20,
+        #     app.font.text_width(msg)+4,
+        #     11,
+        #     1
+        # )
+        draw_rrect(
+            (pyxel.width // 2) - (app.font.text_width(msg)//2)-4,
+            20-4,
+            app.font.text_width(msg)+8,
+            11+8,
+            7,
+            9
+        )
+        pyxel.dither(0.5)
+        draw_rrect(
+            (pyxel.width // 2) - (app.font.text_width(msg)//2)-4,
+            20-4,
+            app.font.text_width(msg)+8,
+            11+8,
+            7,
+            8
+        )
+        pyxel.dither(1)
+        draw_rrectb(
+            (pyxel.width // 2) - (app.font.text_width(msg)//2)-4,
+            20-4,
+            app.font.text_width(msg)+8,
+            11+8,
+            7,
+            4
+        )
+        draw_text_shadow(
+            (pyxel.width // 2) - (app.font.text_width(msg)//2),
+            20,
+            msg,
+            7,
+            custom_font=True
+        )
+
+        msg = "Click to START"
+        # pyxel.rect(
+        #     (pyxel.width // 2) - (app.font.text_width(msg)//2)-2,
+        #     180,
+        #     app.font.text_width(msg)+4,
+        #     11,
+        #     1
+        # )
+        draw_rrect(
+            (pyxel.width // 2) - (app.font.text_width(msg)//2)-4,
+            180-4,
+            app.font.text_width(msg)+8,
+            11+8,
+            7,
+            9
+        )
+        pyxel.dither(0.5)
+        draw_rrect(
+            (pyxel.width // 2) - (app.font.text_width(msg)//2)-4,
+            180-4,
+            app.font.text_width(msg)+8,
+            11+8,
+            7,
+            8
+        )
+        pyxel.dither(1)
+        draw_rrectb(
+            (pyxel.width // 2) - (app.font.text_width(msg)//2)-4,
+            180-4,
+            app.font.text_width(msg)+8,
+            11+8,
+            7,
+            4
+        )
+        draw_text_shadow(
+            (pyxel.width // 2) - (app.font.text_width(msg)//2),
+            180,
+            msg,
+            7,
+            custom_font=True
+        )
+        # --------------------
         # タイトル
         # --------------------
         w, h, = 200, 120
@@ -66,41 +159,6 @@ class TitleScreen:
             w,
             h,
             7
-
-        )
-        # --------------------
-        # 文字
-        # --------------------
-        msg = "Pattern Maker"
-        pyxel.rect(
-            (pyxel.width // 2) - (app.font.text_width(msg)//2)-2,
-            20,
-            app.font.text_width(msg)+4,
-            11,
-            1
-        )
-        draw_text_shadow(
-            (pyxel.width // 2) - (app.font.text_width(msg)//2),
-            20,
-            msg,
-            7,
-            custom_font=True
-        )
-
-        msg = "Click to START"
-        pyxel.rect(
-            (pyxel.width // 2) - (app.font.text_width(msg)//2)-2,
-            180,
-            app.font.text_width(msg)+4,
-            11,
-            1
-        )
-        draw_text_shadow(
-            (pyxel.width // 2) - (app.font.text_width(msg)//2),
-            180,
-            msg,
-            7,
-            custom_font=True
         )
 
         # --------------------
@@ -130,4 +188,17 @@ class TitleScreen:
             38,
             16,
             0
+        )
+        # --------------------
+        # Git Hub Icon
+        # --------------------
+        pyxel.blt(
+            88,
+            pyxel.height-16-16,
+            1,
+            0,
+            16,
+            16,
+            16,
+            10
         )
