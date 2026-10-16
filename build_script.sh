@@ -24,8 +24,3 @@ mv source.html ./docs/index.html
 mv source.pyxapp ./docs/pattern-maker.pyxapp
 # アナリティクス設定
 printf '%s\n' '<script defer src="https://cloud.umami.is/script.js" data-website-id="a4d8746d-447a-4b50-b34e-f4a0542360c5"></script>' >> ./docs/index.html
-
-# distのクリーンアップ
-# rm -rf ./dist/*
-# appファイルの作成
-# pyxel app2exe ./docs/pattern-maker.pyxapp
