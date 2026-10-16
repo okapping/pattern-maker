@@ -134,6 +134,8 @@ class EditorScreen:
         self.redo_canvases = []
         # 現在のパターンサイズ
         self.pattern_size = 16
+        self.pattern_size_x = 16
+        self.pattern_size_y = 16
 
         # 現在の入力枠サイズ
         self.frame_size = 160
@@ -1650,26 +1652,24 @@ class EditorScreen:
         キャンバスの1ドットを、画面上の1ピクセルとして描画する。
         """
 
-        # 等倍表示
-        scale = 1
-        tile_size = self.pattern_size
+        tile_size_x = self.pattern_size_x
+        tile_size_y = self.pattern_size_y
 
-        # 画面全体を覆うため、左右・上下に余分に描画する
         tile_count_x = (
-            self.SCREEN_WIDTH // tile_size
-        ) + 2
+            self.SCREEN_WIDTH // tile_size_x
+        )
 
         tile_count_y = (
-            self.SCREEN_HEIGHT // tile_size
-        ) + 2
+            self.SCREEN_HEIGHT // tile_size_y
+        )
 
-        for tile_y in range(-1, tile_count_y):
-            for tile_x in range(-1, tile_count_x):
-                tile_left = tile_x * tile_size
-                tile_top = tile_y * tile_size
+        for tile_y in range(tile_count_y):
+            for tile_x in range(tile_count_x):
+                tile_left = tile_x * tile_size_x
+                tile_top = tile_y * tile_size_y
 
-                for y in range(self.pattern_size):
-                    for x in range(self.pattern_size):
+                for y in range(self.pattern_size_y):
+                    for x in range(self.pattern_size_x):
                         color = self.canvas[y][x]
 
                         pyxel.pset(
@@ -1677,21 +1677,6 @@ class EditorScreen:
                             tile_top + y,
                             color,
                         )
-
-        # 操作説明を表示する場合
-        # self.draw_text_shadow(
-        #     8,
-        #     8,
-        #     f"PREVIEW: {self.pattern_size} x {self.pattern_size}",
-        #     7,
-        # )
-
-        # self.draw_text_shadow(
-        #     8,
-        #     19,
-        #     "P : BACK",
-        #     7,
-        # )
     
     def draw_status(self):
         """

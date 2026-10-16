@@ -44,6 +44,9 @@ class ListScreen:
 
         self.scroll_y = 0
 
+        # self.show_init = False
+        # self.
+
         self.load_data()
         # self.debug()
     
@@ -175,7 +178,6 @@ class ListScreen:
             columns = self.COL
             margin = self.MARGIN
             size = self.SIZE
-            # for i, canvas in enumerate(self.canvases.copy()):
             for i in range(len(self.canvases) - 1, -1, -1):
                 canvas = self.canvases[i]
                 loop_index = len(self.canvases)-1-i
@@ -200,9 +202,6 @@ class ListScreen:
                         )
                         app.change_screen(app.SCREEN_EDITOR)
                         return
-
-
-
     
     def create_canvas(self):
         """
@@ -218,7 +217,9 @@ class ListScreen:
         return new_canvas
 
     def draw(self):
-        pyxel.cls(5)
+        pyxel.cls(0)
+        # 背景
+        self.draw_background()
         # ヘッダー
         self.draw_header()
         # 新規ボタン
@@ -235,6 +236,61 @@ class ListScreen:
         # スクロールボタン
         self.draw_scroll()
         
+    def draw_background(self):
+        pyxel.cls(5)
+
+        # マウスを並ぶパレットにホバーした場合、
+        # そのキャンバスを背景に表示する
+        hover_canvas = None
+
+        columns = self.COL
+        margin = self.MARGIN
+        size = self.SIZE
+        for i in range(len(self.canvases) - 1, -1, -1):
+            canvas = self.canvases[i]
+            loop_index = len(self.canvases)-1-i
+            x = 36+(loop_index % columns) * size + ((loop_index % columns) * margin)
+            y = self.scroll_y+45+(loop_index // columns) * size + ((loop_index // columns) * margin)
+            if (
+                x <= pyxel.mouse_x < x+size
+                and  y <= pyxel.mouse_y < y+size
+            ):
+                hover_canvas = canvas["canvas"]
+        
+        if hover_canvas is not None:
+            # キャンバスの描画
+            tile_size_x = len(hover_canvas[0])
+            tile_size_y = len(hover_canvas)
+
+            # 移動する場合
+            move_x = -pyxel.frame_count//2%tile_size_x
+            move_y = -pyxel.frame_count//2%tile_size_y
+            # move_x = 0
+            # move_y = 0
+
+            tile_count_x = (
+                pyxel.width // tile_size_x
+            )
+
+            tile_count_y = (
+                pyxel.height // tile_size_y
+            )
+
+            for tile_y in range(-1, tile_count_y):
+                for tile_x in range(-1, tile_count_x):
+                    tile_left = tile_x * tile_size_x + move_x
+                    tile_top = tile_y * tile_size_y + move_y
+
+                    for y in range(tile_size_y):
+                        for x in range(tile_size_x):
+                            color = hover_canvas[y][x]
+
+                            pyxel.pset(
+                                tile_left + x,
+                                tile_top + y,
+                                color,
+                            )
+
     def draw_header(self):
         """
         ヘッダー
@@ -318,7 +374,6 @@ class ListScreen:
         size = self.SIZE
         pyxel.clip(*self.FRAME)
 
-        # for i, canvas in enumerate(self.canvases):
         for i in range(len(self.canvases) - 1, -1, -1):
             canvas = self.canvases[i]
             loop_index = len(self.canvases)-1-i
