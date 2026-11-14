@@ -179,11 +179,11 @@ class ListScreen:
 
         else:
             # スクロールボタン押下
-            if click_btnp(*self.SCRL_TOP_BTN):
+            if click_btnp(*self.SCRL_TOP_BTN, long_click=True):
                 self.scroll_y = min(self.scroll_y+8, 0)
                 return
 
-            if click_btnp(*self.SCRL_BOTTOM_BTN):
+            if click_btnp(*self.SCRL_BOTTOM_BTN, long_click=True):
                 columns = self.COL
                 margin = self.MARGIN
                 size = self.SIZE
@@ -196,46 +196,13 @@ class ListScreen:
                 self.scroll_y = max(self.scroll_y-8, -limit)
                 return
                 
-            # if pyxel.btn(pyxel.MOUSE_BUTTON_LEFT):
-                # x, y, w, h = self.SCRL_TOP_BTN
-                # if (
-                #     x <= pyxel.mouse_x < x+w
-                #     and y <= pyxel.mouse_y < y+h
-                # ):
-                #     self.scroll_y = min(self.scroll_y+8, 0)
-                #     return
-
-                # x, y, w, h = self.SCRL_BOTTOM_BTN
-                # if (
-                #     x <= pyxel.mouse_x < x+w
-                #     and y <= pyxel.mouse_y < y+h
-                # ):
-                #     columns = self.COL
-                #     margin = self.MARGIN
-                #     size = self.SIZE
-
-                #     cnt = len(self.canvases)
-                #     cols = pyxel.ceil(cnt/columns)
-                #     if (cols*size+cols*margin) < self.FRAME[3]:
-                #         return
-                #     limit = (cols*size+cols*margin)-self.FRAME[3]+4  # 微調整の「＋４」！！
-                #     self.scroll_y = max(self.scroll_y-8, -limit)
-                #     return
-
             # --------------------
             # 「NEW」ボタン押下
             # --------------------
 
             if click_btnp(*self.NEW_BTN):
                 self.show_init = True
-                # return            
 
-            # if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT):
-            #     x, y, w, h = self.NEW_BTN
-            #     if (
-            #         x <= pyxel.mouse_x < x+w
-            #         and y <= pyxel.mouse_y < y+h
-            #     ):
             # --------------------
             # パターンをクリック
             # --------------------
@@ -507,14 +474,7 @@ class ListScreen:
             5,
             custom_font=True
         )
-        # pyxel.rectb(
-        #     self.INIT_CREATE_BTN[0],
-        #     self.INIT_CREATE_BTN[1],
-        #     self.INIT_CREATE_BTN[2],
-        #     self.INIT_CREATE_BTN[3],
-        #     0
-        # )
-        
+
     def draw_background(self):
         pyxel.cls(5)
 

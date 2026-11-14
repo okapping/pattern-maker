@@ -112,12 +112,6 @@ class EditorScreen:
         self.app = app
         self.list = list
         self.id = id
-        # pyxel.init(
-        #     self.SCREEN_WIDTH,
-        #     self.SCREEN_HEIGHT,
-        #     title="Pattern Maker",
-        #     fps=30,
-        # )
 
         pyxel.mouse(True)
         pyxel.load("assets/asset.pyxres")
@@ -133,9 +127,6 @@ class EditorScreen:
         # 進む用のキャンバス
         self.redo_canvases = []
         # 現在のパターンサイズ
-        # self.pattern_size = 16
-        # self.pattern_size_x = 16
-        # self.pattern_size_y = 16
 
         # 現在の入力枠サイズ
         self.max_frame_size = 160
@@ -159,15 +150,11 @@ class EditorScreen:
         self.selected_tool = self.TOOL_PEN
 
         # ステータス状態
-        # self.status = None
         self.status_time = 0
         # 初期キャンバス
         # 0番色、つまり黒で埋める
-        # self.create_canvas()
         self.canvas = canvas
         self.create_preview_canvas()
-
-        # pyxel.run(self.update, self.draw)
 
     # =====================================================
     # キャンバス
@@ -197,16 +184,6 @@ class EditorScreen:
             y = self.max_frame_size
         return x, y
 
-    # def create_canvas(self):
-    #     """
-    #     キャンバスを黒で初期化する。
-    #     """
-
-    #     self.canvas = [
-    #         [0 for _ in range(self.pattern_size)]
-    #         for _ in range(self.pattern_size)
-    #     ]
-
     def create_preview_canvas(self):
         """
         キャンバスをNoneで初期化する。
@@ -235,25 +212,6 @@ class EditorScreen:
         for y in range(size_y):
             for x in range(size_x):
                 self.preview_canvas[y][x] = None
-
-    # def change_pattern_size(self, new_size):
-    #     """
-    #     パターンサイズを変更する。
-
-    #     サイズ変更時は、誤った座標変換を防ぐため
-    #     キャンバスを黒で初期化する。
-    #     """
-
-    #     if new_size not in self.PATTERN_SIZE_LIST:
-    #         return
-
-    #     if new_size == self.pattern_size:
-    #         return
-
-    #     self.pattern_size = new_size
-    #     self.previous_point = None
-    #     self.create_canvas()
-    #     self.create_preview_canvas()
 
     def change_frame_size(self, new_size):
         """
@@ -444,22 +402,6 @@ class EditorScreen:
         ):
             self.redo_canvas()
             return
-
-        # ---------------------------------------------
-        # パターンサイズ変更
-        # ---------------------------------------------
-
-        # if pyxel.btnp(pyxel.KEY_1):
-        #     self.change_pattern_size(8)
-
-        # if pyxel.btnp(pyxel.KEY_2):
-        #     self.change_pattern_size(16)
-
-        # if pyxel.btnp(pyxel.KEY_3):
-        #     self.change_pattern_size(32)
-
-        # if pyxel.btnp(pyxel.KEY_4):
-        #     self.change_pattern_size(48)
 
         # ---------------------------------------------
         # 入力枠サイズ変更
@@ -1839,8 +1781,6 @@ class EditorScreen:
         )
         self.status_time = pyxel.frame_count
 
-
-
     # =====================================================
     # PNG出力
     # =====================================================
@@ -1940,7 +1880,3 @@ class EditorScreen:
 
         URL.revokeObjectURL(url)
         os.remove(path)
-
-
-# if __name__ == "__main__":
-#     PatternEditor()
