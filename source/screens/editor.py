@@ -133,12 +133,12 @@ class EditorScreen:
         # 進む用のキャンバス
         self.redo_canvases = []
         # 現在のパターンサイズ
-        self.pattern_size = 16
-        self.pattern_size_x = 16
-        self.pattern_size_y = 16
+        # self.pattern_size = 16
+        # self.pattern_size_x = 16
+        # self.pattern_size_y = 16
 
         # 現在の入力枠サイズ
-        self.frame_size = 160
+        self.max_frame_size = 160
 
         # 選択中の色
         self.selected_color = 7
@@ -173,63 +173,87 @@ class EditorScreen:
     # キャンバス
     # =====================================================
 
-    def create_canvas(self):
+    def get_pattern_size(self):
         """
-        キャンバスを黒で初期化する。
+        パターンサイズを取得する
         """
+        y = len(self.canvas)
+        x = len(self.canvas[0])
+        return x, y
 
-        self.canvas = [
-            [0 for _ in range(self.pattern_size)]
-            for _ in range(self.pattern_size)
-        ]
+    def get_flame_size(self):
+        """
+        フレームサイズを取得する
+        """
+        size_x, size_y = self.get_pattern_size()
+        if size_x < size_y:
+            x = self.max_frame_size * (size_x / size_y)
+            y = self.max_frame_size
+        elif size_x > size_y:
+            x = self.max_frame_size
+            y = self.max_frame_size * (size_y / size_x)
+        else:
+            x = self.max_frame_size
+            y = self.max_frame_size
+        return x, y
+
+    # def create_canvas(self):
+    #     """
+    #     キャンバスを黒で初期化する。
+    #     """
+
+    #     self.canvas = [
+    #         [0 for _ in range(self.pattern_size)]
+    #         for _ in range(self.pattern_size)
+    #     ]
 
     def create_preview_canvas(self):
         """
         キャンバスをNoneで初期化する。
         プレビューはNoneが有効
         """
-
+        size_x, size_y = self.get_pattern_size()
         self.preview_canvas = [
-            [None for _ in range(self.pattern_size)]
-            for _ in range(self.pattern_size)
+            [None for _ in range(size_x)]
+            for _ in range(size_y)
         ]
 
     def clear_canvas(self):
         """
         キャンバスをすべて黒に戻す。
         """
-
-        for y in range(self.pattern_size):
-            for x in range(self.pattern_size):
+        size_x, size_y = self.get_pattern_size()
+        for y in range(size_y):
+            for x in range(size_x):
                 self.canvas[y][x] = 0
 
     def clear_preview_canvas(self):
         """
         プレビュー用キャンバスをすべてNoneに戻す。
         """
-
-        for y in range(self.pattern_size):
-            for x in range(self.pattern_size):
+        size_x, size_y = self.get_pattern_size()
+        for y in range(size_y):
+            for x in range(size_x):
                 self.preview_canvas[y][x] = None
 
-    def change_pattern_size(self, new_size):
-        """
-        パターンサイズを変更する。
+    # def change_pattern_size(self, new_size):
+    #     """
+    #     パターンサイズを変更する。
 
-        サイズ変更時は、誤った座標変換を防ぐため
-        キャンバスを黒で初期化する。
-        """
+    #     サイズ変更時は、誤った座標変換を防ぐため
+    #     キャンバスを黒で初期化する。
+    #     """
 
-        if new_size not in self.PATTERN_SIZE_LIST:
-            return
+    #     if new_size not in self.PATTERN_SIZE_LIST:
+    #         return
 
-        if new_size == self.pattern_size:
-            return
+    #     if new_size == self.pattern_size:
+    #         return
 
-        self.pattern_size = new_size
-        self.previous_point = None
-        self.create_canvas()
-        self.create_preview_canvas()
+    #     self.pattern_size = new_size
+    #     self.previous_point = None
+    #     self.create_canvas()
+    #     self.create_preview_canvas()
 
     def change_frame_size(self, new_size):
         """
@@ -243,7 +267,7 @@ class EditorScreen:
         if not (52 <= new_size < 200):
             return
 
-        self.frame_size = new_size
+        self.max_frame_size = new_size
         self.previous_point = None
 
     def register_undo(self):
@@ -289,9 +313,9 @@ class EditorScreen:
         """
         中央入力枠の左端を返す。
         """
-
+        flame_x, flame_y = self.get_flame_size()
         return (
-            self.SCREEN_WIDTH - self.frame_size
+            self.SCREEN_WIDTH - flame_x
         ) // 2
 
     def editor_y(self):
@@ -299,8 +323,9 @@ class EditorScreen:
         中央入力枠の上端を返す。
         """
 
+        flame_x, flame_y = self.get_flame_size()
         return (
-            self.SCREEN_HEIGHT - self.frame_size
+            self.SCREEN_HEIGHT - flame_y
         ) // 2
 
     def screen_to_canvas(self, screen_x, screen_y):
@@ -309,27 +334,29 @@ class EditorScreen:
         """
 
         editor_x = self.editor_x()
-
+        flame_x, flame_y = self.get_flame_size()
         if not (
-            editor_x <= screen_x < editor_x + self.frame_size
-            and self.editor_y() <= screen_y < self.editor_y() + self.frame_size
+            editor_x <= screen_x < editor_x + flame_x
+            and self.editor_y() <= screen_y < self.editor_y() + flame_y
         ):
             return None
 
+        size_x, size_y = self.get_pattern_size()
         x = (
             (screen_x - editor_x)
-            * self.pattern_size
-            // self.frame_size
+            * size_x
+            // flame_x
         )
 
         y = (
             (screen_y - self.editor_y())
-            * self.pattern_size
-            // self.frame_size
+            * size_y
+            // flame_y
         )
 
-        if 0 <= x < self.pattern_size and 0 <= y < self.pattern_size:
-            return x, y
+        if 0 <= x < size_x and 0 <= y < size_y:
+            print(f"x={x}, y={y}")
+            return int(x), int(y)
 
         return None
 
@@ -339,6 +366,7 @@ class EditorScreen:
 
     def update(self):
         before_canvas = deepcopy(self.canvas)
+        size_x, size_y = self.get_pattern_size()
         # プレビューモード時は何も受け付けない。
         if self.preview_mode:
             if (
@@ -410,8 +438,6 @@ class EditorScreen:
             return
 
         if (
-            # pyxel.btnp(pyxel.KEY_N, hold=15, repeat=1)
-            # pyxel.btn(pyxel.KEY_GUI)
             pyxel.btn(pyxel.KEY_CTRL)
             and pyxel.btn(pyxel.KEY_SHIFT)
             and pyxel.btnp(pyxel.KEY_Z)
@@ -452,9 +478,9 @@ class EditorScreen:
             self.change_frame_size(160)
 
         if pyxel.btn(pyxel.KEY_UP):
-            self.change_frame_size(self.frame_size + 4)
+            self.change_frame_size(self.max_frame_size + 4)
         if pyxel.btn(pyxel.KEY_DOWN):
-            self.change_frame_size(self.frame_size - 4)
+            self.change_frame_size(self.max_frame_size - 4)
         # ---------------------------------------------
         # 色変更
         # ---------------------------------------------
@@ -604,8 +630,8 @@ class EditorScreen:
 
                             # 枠外ならスキップ
                             if not (
-                                0 <= x < self.pattern_size
-                                and 0 <= y < self.pattern_size
+                                0 <= x < size_x
+                                and 0 <= y < size_y
                             ):
                                 continue
 
@@ -833,9 +859,10 @@ class EditorScreen:
 
         """
 
+        size_x, size_y = self.get_pattern_size()
         if not (
-            0 <= x < self.pattern_size
-            and 0 <= y < self.pattern_size
+            0 <= x < size_x
+            and 0 <= y < size_y
         ):
             return
 
@@ -1364,16 +1391,16 @@ class EditorScreen:
 
         editor_x = self.editor_x()
         editor_y = self.editor_y()
-
+        flame_x, flame_y = self.get_flame_size()
         # 周囲を5×5で描画
         for tile_y in range(-2, 3):
             for tile_x in range(-2, 3):
                 left = editor_x + (
-                    tile_x * self.frame_size
+                    tile_x * flame_x
                 )
 
                 top = editor_y + (
-                    tile_y * self.frame_size
+                    tile_y * flame_y
                 )
 
                 self.draw_tile(left, top)
@@ -1381,18 +1408,18 @@ class EditorScreen:
         # 中央のガイド線を表示
         # 縦
         pyxel.line(
-            editor_x + (self.frame_size // 2) - 1,
+            editor_x + (flame_x // 2) - 1,
             editor_y - 1,
-            editor_x + (self.frame_size // 2) - 1,
-            editor_y + self.frame_size - 1,
+            editor_x + (flame_x // 2) - 1,
+            editor_y + flame_y - 1,
             1
         )
         # 横
         pyxel.line(
             editor_x - 1,
-            editor_y + (self.frame_size // 2) - 1,
-            editor_x + self.frame_size - 1,
-            editor_y + (self.frame_size // 2) - 1,
+            editor_y + (flame_y // 2) - 1,
+            editor_x + flame_x - 1,
+            editor_y + (flame_y // 2) - 1,
             1
         )
 
@@ -1400,8 +1427,8 @@ class EditorScreen:
         pyxel.rectb(
             editor_x - 1,
             editor_y - 1,
-            self.frame_size + 2,
-            self.frame_size + 2,
+            flame_x + 2,
+            flame_y + 2,
             7,
         )
 
@@ -1419,35 +1446,36 @@ class EditorScreen:
         """
         1枚分のパターンを描画する。
         """
-
+        flame_x, flame_y = self.get_flame_size()
         if not preview:
             canvas = self.canvas
         else:
             canvas = self.preview_canvas
-        for y in range(self.pattern_size):
-            for x in range(self.pattern_size):
+        size_x, size_y = self.get_pattern_size()
+        for y in range(size_y):
+            for x in range(size_x):
                 if canvas[y][x] is None:
                     continue
                 color = canvas[y][x]
 
                 left = tile_x + (
-                    x * self.frame_size
-                    // self.pattern_size
+                    x * flame_x
+                    // size_x
                 )
 
                 top = tile_y + (
-                    y * self.frame_size
-                    // self.pattern_size
+                    y * flame_y
+                    // size_y
                 )
 
                 right = tile_x + (
-                    (x + 1) * self.frame_size
-                    // self.pattern_size
+                    (x + 1) * flame_x
+                    // size_x
                 ) - 1
 
                 bottom = tile_y + (
-                    (y + 1) * self.frame_size
-                    // self.pattern_size
+                    (y + 1) * flame_y
+                    // size_y
                 ) - 1
 
                 width = right - left + 1
@@ -1466,8 +1494,8 @@ class EditorScreen:
         pyxel.rectb(
             tile_x,
             tile_y,
-            self.frame_size,
-            self.frame_size,
+            flame_x,
+            flame_y,
             1,
         )
 
@@ -1651,9 +1679,9 @@ class EditorScreen:
         パターンを等倍で画面全体に繰り返し表示する。
         キャンバスの1ドットを、画面上の1ピクセルとして描画する。
         """
-
-        tile_size_x = self.pattern_size_x
-        tile_size_y = self.pattern_size_y
+        size_x, size_y = self.get_pattern_size()
+        tile_size_x = size_x
+        tile_size_y = size_y
 
         tile_count_x = (
             self.SCREEN_WIDTH // tile_size_x
@@ -1663,13 +1691,13 @@ class EditorScreen:
             self.SCREEN_HEIGHT // tile_size_y
         )
 
-        for tile_y in range(tile_count_y):
-            for tile_x in range(tile_count_x):
+        for tile_y in range(tile_count_y+1):
+            for tile_x in range(tile_count_x+1):
                 tile_left = tile_x * tile_size_x
                 tile_top = tile_y * tile_size_y
 
-                for y in range(self.pattern_size_y):
-                    for x in range(self.pattern_size_x):
+                for y in range(size_y):
+                    for x in range(size_x):
                         color = self.canvas[y][x]
 
                         pyxel.pset(
@@ -1823,12 +1851,13 @@ class EditorScreen:
         背景は透明ではなく、すべてRGB形式で出力する。
         """
 
-        output_size = self.pattern_size
+        size_x, size_y = self.get_pattern_size()
+        # output_size = self.pattern_size
 
-        p_image = pyxel.Image(output_size, output_size)
+        p_image = pyxel.Image(size_x, size_y)
 
-        for y in range(self.pattern_size):
-            for x in range(self.pattern_size):
+        for y in range(size_y):
+            for x in range(size_x):
                 color_index = self.canvas[y][x]
                 # rgb = PYXEL_PALETTE[color_index]
 
@@ -1853,38 +1882,38 @@ class EditorScreen:
     # テキスト出力
     # =====================================================
 
-    def export_text(self):
-        """
-        PyxelのImage.set()で利用できる形式で出力する。
-        """
+    # def export_text(self):
+    #     """
+    #     PyxelのImage.set()で利用できる形式で出力する。
+    #     """
 
-        filename = (
-            f"pattern_{self.pattern_size}x"
-            f"{self.pattern_size}.txt"
-        )
+    #     filename = (
+    #         f"pattern_{self.pattern_size}x"
+    #         f"{self.pattern_size}.txt"
+    #     )
 
-        output = "pyxel.image(0).set(0, 0, [\n"
+    #     output = "pyxel.image(0).set(0, 0, [\n"
 
-        for y in range(self.pattern_size):
-            row = ""
+    #     for y in range(self.pattern_size):
+    #         row = ""
 
-            for x in range(self.pattern_size):
-                color = self.canvas[y][x]
-                row += format(color, "x")
+    #         for x in range(self.pattern_size):
+    #             color = self.canvas[y][x]
+    #             row += format(color, "x")
 
-            comma = "," if y < self.pattern_size - 1 else ""
-            output += f'    "{row}"{comma}\n'
+    #         comma = "," if y < self.pattern_size - 1 else ""
+    #         output += f'    "{row}"{comma}\n'
 
-        output += "])\n"
+    #     output += "])\n"
 
-        # ファイルに書き込む
-        with open(filename, "w", encoding="utf-8") as file:
-            file.write(output)
+    #     # ファイルに書き込む
+    #     with open(filename, "w", encoding="utf-8") as file:
+    #         file.write(output)
 
-        # 書き込んだ内容を画面に表示
-        print(output)
+    #     # 書き込んだ内容を画面に表示
+    #     print(output)
 
-        # print(f"Text saved: {filename}")
+    #     # print(f"Text saved: {filename}")
 
     def download_image(self, image, filename):
         path = "/tmp/download.png"

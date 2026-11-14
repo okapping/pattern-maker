@@ -1,5 +1,20 @@
 import pyxel
 
+def click_btnp(x, y, w, h, long_click=False):
+    """
+    ボタンをクリックしたかを判定する
+    """
+    hold = 15 if long_click else None
+    repeat = 2 if long_click else None
+
+    if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT, hold=hold, repeat=repeat):
+        if (
+            x <= pyxel.mouse_x < x+w
+            and y <= pyxel.mouse_y < y+h
+        ):
+            return True
+    return False
+
 
 def draw_text_shadow(x, y, text, color=7, custom_font=False):
     """
